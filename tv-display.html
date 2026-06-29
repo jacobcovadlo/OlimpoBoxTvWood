@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WOD TV</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a0a;
+      color: #fff;
+      font-family: 'Arial Black', 'Arial Bold', Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    /* ════════════════════════════════
+       PANTALLA EDITOR
+    ════════════════════════════════ */
+    #screen-editor {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1rem; padding: 2rem;
+      background: #111; z-index: 1;
+    }
+    #screen-editor h1 {
+      font-size: 1.5rem; font-weight: 900;
+      color: #fff; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    #screen-editor p {
+      font-size: 0.85rem; color: #555;
+      font-family: Arial, sans-serif; text-align: center;
+      max-width: 500px; line-height: 1.5;
+    }
+    #wod-input {
+      width: 100%; max-width: 580px; height: 260px;
+      background: #1a1a1a; color: #f0f0f0;
+      border: 2px solid #2a2a2a; border-radius: 8px;
+      font-size: 0.95rem; font-family: 'Courier New', monospace;
+      line-height: 1.6; padding: 1rem; resize: vertical;
+      outline: none; transition: border-color 0.2s;
+    }
+    #wod-input:focus { border-color: #555; }
+    #wod-input::placeholder { color: #333; }
+    .editor-btns { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; }
+    button {
+      padding: 0.7rem 1.6rem; font-size: 0.95rem; font-weight: 700;
+      font-family: 'Arial Black', Arial, sans-serif;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      cursor: pointer; border: none; border-radius: 6px;
+      transition: transform 0.1s, filter 0.15s;
+    }
+    button:hover  { filter: brightness(1.15); }
+    button:active { transform: scale(0.97); }
+    #btn-show { background: #fff; color: #000; font-size: 1.05rem; padding: 0.8rem 2rem; }
+    #btn-fs   { background: #222; color: #888; border: 1px solid #333; }
+    .hint { font-size: 0.72rem; color: #333; font-family: Arial, sans-serif; }
+
+    /* ════════════════════════════════
+       PANTALLA DISPLAY
+    ════════════════════════════════ */
+    #screen-display {
+      position: fixed; inset: 0;
+      display: none; flex-direction: column;
+      background: #000; overflow: hidden;
+      z-index: 2; padding: 1.5vh 2vw 0;
+    }
+
+    /* Cabecera fija — tamaños en vw, no escala con el scaler */
+    #wod-header {
+      flex-shrink: 0;
+      text-align: center;
+      padding-bottom: 0.5vh;
+    }
+    #wod-header .title {
+      font-size: clamp(20px, 4.5vw, 90px);
+      font-weight: 900; color: #fff;
+      text-transform: uppercase; letter-spacing: 0.02em; line-height: 1.1;
+    }
+    #wod-header .subtitle {
+      font-size: clamp(14px, 2.7vw, 54px);
+      font-weight: 400; color: rgba(255,255,255,0.6); line-height: 1.15;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    /* Wrapper del grid — ocupa el espacio restante (flex:1) */
+    #wod-content {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Grid de secciones — SIN flex:1 para que scrollHeight refleje el tamaño real */
+    #wod-grid {
+      display: grid;
+      width: 100%;
+      gap: 0.6em;
+      /* height y alignContent los controla el scaler */
+    }
+
+    /* Tarjeta de sección */
+    .wod-card {
+      border-top: 1px solid rgba(255,255,255,0.18);
+      padding: 0.25em 0.5em 0.3em;
+      min-width: 0; /* evita que la columna se expanda con texto nowrap */
+      overflow: hidden;
+    }
+    .card-num {
+      font-size: 0.85em; font-weight: 400;
+      color: rgba(255,255,255,0.35);
+      line-height: 1.1; margin-bottom: 0.08em;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .card-title {
+      font-size: 1em; font-weight: 900;
+      color: #ffffff;
+      line-height: 1.1; margin-bottom: 0.12em;
+      padding-bottom: 0.08em;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .wod-line {
+      font-size: 1em; font-weight: 700;
+      color: #ffffff; line-height: 1.2;
+      white-space: nowrap;
+    }
+    .wod-note {
+      font-size: 0.88em; font-style: italic;
+      color: rgba(255,255,255,0.45); line-height: 1.15;
+      white-space: nowrap;
+    }
+    strong { color: #ffffff; font-weight: 900; }
+
+    /* Botón volver */
+    #btn-back {
+      position: fixed; bottom: 0.5rem; right: 0.7rem;
+      background: rgba(255,255,255,0.06); color: #444;
+      font-size: 0.65rem; padding: 0.25rem 0.6rem;
+      border-radius: 3px; opacity: 0.3; transition: opacity 0.2s;
+      text-transform: none; letter-spacing: 0;
+      font-family: Arial, sans-serif; font-weight: 400; z-index: 20;
+    }
+    #btn-back:hover { opacity: 1; color: #ccc; }
+    #display-hint {
+      position: fixed; bottom: 0.5rem; left: 0.7rem;
+      color: #1c1c1c; font-size: 0.6rem;
+      font-family: Arial, sans-serif; pointer-events: none;
+    }
+
+    /* ════ Botones secundarios del editor ════ */
+    #btn-cast, #btn-share {
+      background: #1a1a1a; color: #666;
+      border: 1px solid #2a2a2a; font-size: 0.85rem;
+      padding: 0.6rem 1.2rem;
+    }
+    #btn-cast:hover, #btn-share:hover { color: #aaa; }
+    #btn-share { display: none; } /* solo visible en HTTP */
+
+    /* ════ Modal Chromecast ════ */
+    #cast-modal {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.88);
+      display: none; align-items: center; justify-content: center;
+    }
+    #cast-panel {
+      background: #111; border: 1px solid #2a2a2a;
+      border-radius: 10px; padding: 2rem 2.2rem 1.6rem;
+      max-width: 400px; width: 92%; text-align: center;
+    }
+    .cast-title {
+      font-size: 0.95rem; font-weight: 900; color: #fff;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 1.4rem;
+    }
+    .cast-steps { text-align: left; margin-bottom: 1.4rem; }
+    .cast-step {
+      display: flex; gap: 0.8rem; align-items: flex-start;
+      margin-bottom: 0.9rem;
+    }
+    .cast-n {
+      background: #fff; color: #000; border-radius: 50%;
+      min-width: 1.35rem; height: 1.35rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 900; flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .cast-text {
+      font-size: 0.82rem; color: #999;
+      font-family: Arial, sans-serif; line-height: 1.55;
+    }
+    .cast-text strong { color: #fff; font-family: 'Arial Black', Arial, sans-serif; }
+    .cast-text code {
+      background: #1e1e1e; border: 1px solid #333;
+      border-radius: 3px; padding: 0.05em 0.35em;
+      font-family: monospace; font-size: 0.9em; color: #ccc;
+    }
+    #btn-cast-close {
+      background: #1a1a1a; color: #666; border: 1px solid #2a2a2a;
+      font-size: 0.8rem; padding: 0.55rem 1.4rem;
+    }
+    #btn-cast-close:hover { color: #ccc; }
+  </style>
+</head>
+<body>
+
+  <!-- Pantalla 1: Editor -->
+  <div id="screen-editor">
+    <h1>WOD TV</h1>
+    <p>Pega el WOD del día. La app redistribuye todo en la pantalla del TV de una vez.</p>
+    <textarea id="wod-input" placeholder="Pega aquí el WOD del día..."></textarea>
+    <div class="editor-btns">
+      <button id="btn-show">Mostrar en TV</button>
+      <button id="btn-fs">⛶ Pantalla completa</button>
+      <button id="btn-cast">📡 Chromecast</button>
+      <button id="btn-share">📋 Copiar URL</button>
+    </div>
+    <span class="hint">Todas las secciones se muestran juntas en una sola pantalla.</span>
+  </div>
+
+  <!-- Pantalla 2: Display -->
+  <div id="screen-display">
+    <div id="wod-header"></div>
+    <div id="wod-content">
+      <div id="wod-grid"></div>
+    </div>
+    <button id="btn-back">← Volver</button>
+    <div id="display-hint">F pantalla completa · C chromecast · Esc volver</div>
+  </div>
+
+  <!-- Modal: instrucciones Chromecast -->
+  <div id="cast-modal">
+    <div id="cast-panel">
+      <div class="cast-title">Transmitir al TV</div>
+      <div class="cast-steps">
+        <div class="cast-step">
+          <div class="cast-n">1</div>
+          <div class="cast-text">En Chrome, haz clic en los <strong>tres puntos ⋮</strong> (arriba a la derecha)</div>
+        </div>
+        <div class="cast-step">
+          <div class="cast-n">2</div>
+          <div class="cast-text">Selecciona <strong>"Transmitir…"</strong> — se abre el panel de Chromecast</div>
+        </div>
+        <div class="cast-step">
+          <div class="cast-n">3</div>
+          <div class="cast-text">Arriba del panel, cambia a <strong>"Transmitir pestaña"</strong></div>
+        </div>
+        <div class="cast-step">
+          <div class="cast-n">4</div>
+          <div class="cast-text">Elige tu <strong>Chromecast / TV</strong> en la lista — el WOD aparece en el TV</div>
+        </div>
+      </div>
+      <button id="btn-cast-close">Entendido</button>
+    </div>
+  </div>
+
+  <script>
+
+    /* ─── Utilidades ─── */
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // Convierte texto con marcadores **bold** en HTML con <strong>
+    // Sin marcadores: bold automático en números. Con marcadores: procesa secciones.
+    function applyBold(text) {
+      if (!text.includes('**')) {
+        return esc(text).replace(/\b(\d+(?:[.,]\d+)?)\b/g, '<strong>$1</strong>');
+      }
+      const parts = text.split(/(\*\*[^*\n]+\*\*)/);
+      return parts.map(p => {
+        if (p.startsWith('**') && p.endsWith('**')) {
+          return `<strong>${esc(p.slice(2, -2))}</strong>`;
+        }
+        return esc(p).replace(/\b(\d+(?:[.,]\d+)?)\b/g, '<strong>$1</strong>');
+      }).join('');
+    }
+
+    function renderLine(line) {
+      const t = line.trim();
+      if (!t) return '';
+      return `<div class="wod-line">${applyBold(t)}</div>`;
+    }
+
+    /* ─── Leer negritas del portapapeles ─── */
+    function htmlToText(html) {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const buf = [];
+
+      function isBold(node) {
+        const tag = node.tagName.toLowerCase();
+        if (tag === 'b' || tag === 'strong') return true;
+        const fw = (node.getAttribute('style') || '').match(/font-weight\s*:\s*(\w+)/);
+        if (fw) return fw[1] === 'bold' || parseInt(fw[1]) >= 700;
+        return false;
+      }
+
+      function walk(node, bold) {
+        if (node.nodeType === 3) {
+          const t = node.textContent;
+          if (!t) return;
+          // Nodo de texto: si está en negrita y tiene contenido real, añadir marcadores **
+          buf.push((bold && t.trim()) ? `**${t.trim()}**` : t);
+          return;
+        }
+        if (node.nodeType !== 1) return;
+        const tag = node.tagName.toLowerCase();
+        if (tag === 'script' || tag === 'style') return;
+        if (tag === 'br') { buf.push('\n'); return; }
+
+        const b = bold || isBold(node);
+        for (const child of node.childNodes) walk(child, b);
+
+        // Siempre añadir salto de línea tras elemento de bloque —
+        // incluyendo divs vacíos que actúan de separador de sección
+        if (['p','div','li','h1','h2','h3','h4','h5','h6','tr'].includes(tag)) {
+          buf.push('\n');
+        }
+      }
+
+      walk(doc.body, false);
+
+      return buf.join('')
+        .replace(/\*\*\s*\*\*/g, '')     // marcadores vacíos
+        .replace(/[ \t]{2,}/g, ' ')      // espacios múltiples
+        .replace(/\n{3,}/g, '\n\n')      // máximo una línea en blanco
+        .trim();
+    }
+
+    /* ─── Detección de bloques ─── */
+    // Regla única: línea en blanco = nueva columna
+    function splitBlocks(raw) {
+      const blocks = [];
+      let cur = [];
+      for (const ln of raw.split(/\r?\n/)) {
+        if (!ln.trim()) {
+          if (cur.length) { blocks.push(cur); cur = []; }
+        } else {
+          cur.push(ln.trim());
+        }
+      }
+      if (cur.length) blocks.push(cur);
+      return blocks.length ? blocks : [[]];
+    }
+
+    /* ─── Número de columnas según secciones ───
+       1 → 1 col
+       2 → 2 col
+       3 → 3 col
+       4 → 2 col × 2 filas  (2×2, toda la pantalla)
+       5-6 → 3 col × 2 filas
+       7+ → 3 col
+    ─── */
+    function getColCount(n) {
+      if (n <= 3) return n;
+      if (n === 4) return 2;
+      return 3;
+    }
+
+    /* ─── Render de tarjeta ─── */
+    function renderCard(block, showTitle) {
+      const first = block[0] || '';
+      const isNum = /^\d+[\)\.]\s*/.test(first);
+
+      if (isNum) {
+        const body = block.slice(1).map(renderLine).join('');
+        return `<div class="wod-card"><div class="card-num">${esc(first)}</div>${body}</div>`;
+      } else if (showTitle && block.length > 1) {
+        const body = block.slice(1).map(renderLine).join('');
+        return `<div class="wod-card"><div class="card-title">${applyBold(first)}</div>${body}</div>`;
+      } else {
+        const body = block.map(renderLine).join('');
+        return `<div class="wod-card">${body}</div>`;
+      }
+    }
+
+    /* ─── Parseo y render ─── */
+    function renderWOD(raw) {
+      if (!raw.trim()) return;
+      let blocks = splitBlocks(raw);
+
+      document.getElementById('wod-header').innerHTML = '';
+
+      const grid = document.getElementById('wod-grid');
+      const cols = getColCount(blocks.length);
+      grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      grid.style.gridTemplateRows   = '';
+      grid.style.height             = 'auto';
+      grid.style.alignContent       = 'start';
+      grid.innerHTML = blocks.map(b => renderCard(b, blocks.length > 1)).join('');
+    }
+
+    /* ─── Auto-escalado ───
+       #wod-content tiene flex:1 → su clientHeight = espacio disponible real
+       #wod-grid NO tiene flex → su scrollHeight = alto natural del contenido
+
+       Así, "scrollHeight > clientHeight" detecta correctamente el desborde.
+       Al final estiramos el grid para que llene todo el espacio.
+    ─── */
+    function scaleWOD() {
+      const content = document.getElementById('wod-content');
+      const grid    = document.getElementById('wod-grid');
+      const display = document.getElementById('screen-display');
+
+      if (display.style.display === 'none') return;
+
+      // Resetear para medición correcta
+      grid.style.height       = 'auto';
+      grid.style.alignContent = 'start';
+
+      const maxH = content.clientHeight;
+      const maxW = content.clientWidth;
+      if (maxH < 50 || maxW < 100) {
+        setTimeout(scaleWOD, 100);
+        return;
+      }
+
+      // Búsqueda binaria: mayor font-size donde todo cabe sin saltar de línea
+      const cards = grid.querySelectorAll('.wod-card');
+      let lo = 4, hi = 400;
+      while (hi - lo > 1) {
+        const mid = (lo + hi) >> 1;
+        content.style.fontSize = mid + 'px';
+        // overflow vertical O alguna tarjeta más ancha que su columna
+        const overflowH = Array.from(cards).some(c => c.scrollWidth > c.clientWidth + 1);
+        if (grid.scrollHeight > maxH || overflowH) hi = mid;
+        else lo = mid;
+      }
+      content.style.fontSize = lo + 'px';
+
+      // Estirar el grid para llenar el espacio disponible
+      grid.style.height       = maxH + 'px';
+      grid.style.alignContent = 'stretch';
+    }
+
+    /* ─── Control de pantallas ─── */
+    function showDisplay() {
+      const raw = document.getElementById('wod-input').value;
+      if (!raw.trim()) return;
+
+      renderWOD(raw);
+      document.getElementById('screen-editor').style.display = 'none';
+      document.getElementById('screen-display').style.display = 'flex';
+
+      // Escalar después de que el layout esté listo
+      setTimeout(scaleWOD, 100);
+
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen()
+          .then(() => setTimeout(scaleWOD, 200))
+          .catch(() => {});
+      }
+    }
+
+    function goBack() {
+      document.getElementById('screen-display').style.display = 'none';
+      document.getElementById('screen-editor').style.display  = 'flex';
+      if (document.fullscreenElement) document.exitFullscreen();
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen()
+          .then(() => setTimeout(scaleWOD, 200))
+          .catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    /* ─── Compartir URL (solo en HTTP) ─── */
+    if (location.protocol === 'http:' || location.protocol === 'https:') {
+      const btnShare = document.getElementById('btn-share');
+      btnShare.style.display = '';
+      btnShare.addEventListener('click', () => {
+        navigator.clipboard.writeText(location.href).then(() => {
+          const orig = btnShare.textContent;
+          btnShare.textContent = '✓ Copiado';
+          setTimeout(() => { btnShare.textContent = orig; }, 2000);
+        });
+      });
+    }
+
+    /* ─── Chromecast ─── */
+    function openCastModal() {
+      document.getElementById('cast-modal').style.display = 'flex';
+    }
+    function closeCastModal() {
+      document.getElementById('cast-modal').style.display = 'none';
+    }
+
+    function startCast() {
+      // 1. Mostrar el WOD en display
+      showDisplay();
+
+      // 2. Intentar Presentation API (abre el diálogo nativo de Chrome si está disponible)
+      //    Funciona en HTTP/HTTPS; en file:// puede abrir la UI de transmitir pestaña
+      if (window.PresentationRequest) {
+        const req = new PresentationRequest([window.location.href]);
+        req.start().catch(() => {}); // error silencioso = usuario canceló o no disponible
+      }
+
+      // 3. Mostrar las instrucciones paso a paso
+      setTimeout(openCastModal, 350);
+    }
+
+    /* ─── Eventos ─── */
+    document.getElementById('btn-show').addEventListener('click', showDisplay);
+    document.getElementById('btn-cast').addEventListener('click', startCast);
+    document.getElementById('btn-cast-close').addEventListener('click', closeCastModal);
+    document.getElementById('cast-modal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeCastModal();
+    });
+
+    // Interceptar paste para preservar negritas del portapapeles
+    document.getElementById('wod-input').addEventListener('paste', function(e) {
+      const html = e.clipboardData.getData('text/html');
+      if (!html) return; // sin HTML → paste normal de texto plano
+      e.preventDefault();
+      const text = htmlToText(html);
+      const ta = this;
+      const s = ta.selectionStart, end = ta.selectionEnd;
+      ta.value = ta.value.slice(0, s) + text + ta.value.slice(end);
+      ta.selectionStart = ta.selectionEnd = s + text.length;
+    });
+    document.getElementById('btn-back').addEventListener('click', goBack);
+    document.getElementById('btn-fs').addEventListener('click', toggleFullscreen);
+
+    document.addEventListener('keydown', e => {
+      const onDisplay = document.getElementById('screen-display').style.display !== 'none';
+      if (!onDisplay) return;
+      if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+      else if (e.key === 'c' || e.key === 'C') openCastModal();
+      else if (e.key === 'Escape') {
+        if (document.getElementById('cast-modal').style.display !== 'none') closeCastModal();
+        else if (!document.fullscreenElement) goBack();
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      setTimeout(scaleWOD, 200);
+    });
+
+    let rsTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(rsTimer);
+      rsTimer = setTimeout(scaleWOD, 150);
+    });
+  </script>
+</body>
+</html>
