@@ -65,6 +65,12 @@
       #wod-input { width: 88vw; }
       .editor-btns { flex-direction: column; width: 88vw; gap: 0.6rem; }
       button { font-size: 0.85rem; padding: 0.8rem 1rem; width: 100%; letter-spacing: 0.01em; }
+      #btn-back {
+        opacity: 0.85; color: #eee; background: rgba(255,255,255,0.18);
+        font-size: 1rem; padding: 0.6rem 1.1rem; bottom: 1rem; right: 1rem;
+        border-radius: 6px;
+      }
+      #display-hint { display: none; } /* "Esc volver" no aplica en móvil */
     }
 
     /* ════════════════════════════════
@@ -217,6 +223,11 @@
       border-radius: 3px; padding: 0.05em 0.35em;
       font-family: monospace; font-size: 0.9em; color: #ccc;
     }
+    .cast-note {
+      font-size: 0.72rem; color: #666; font-family: Arial, sans-serif;
+      line-height: 1.5; text-align: left; margin-bottom: 1.4rem;
+      border-top: 1px solid #2a2a2a; padding-top: 0.9rem;
+    }
     #btn-cast-close {
       background: #1a1a1a; color: #666; border: 1px solid #2a2a2a;
       font-size: 0.8rem; padding: 0.55rem 1.4rem;
@@ -258,21 +269,22 @@
       <div class="cast-steps">
         <div class="cast-step">
           <div class="cast-n">1</div>
-          <div class="cast-text">En Chrome, haz clic en los <strong>tres puntos ⋮</strong> (arriba a la derecha)</div>
+          <div class="cast-text">Desliza desde arriba para abrir los <strong>ajustes rápidos</strong> del móvil</div>
         </div>
         <div class="cast-step">
           <div class="cast-n">2</div>
-          <div class="cast-text">Selecciona <strong>"Transmitir…"</strong> — se abre el panel de Chromecast</div>
+          <div class="cast-text">Toca <strong>"Transmitir pantalla" / "Smart View"</strong> (el nombre varía según el móvil)</div>
         </div>
         <div class="cast-step">
           <div class="cast-n">3</div>
-          <div class="cast-text">Arriba del panel, cambia a <strong>"Transmitir pestaña"</strong></div>
+          <div class="cast-text">Elige tu <strong>Chromecast / TV</strong> en la lista</div>
         </div>
         <div class="cast-step">
           <div class="cast-n">4</div>
-          <div class="cast-text">Elige tu <strong>Chromecast / TV</strong> en la lista — el WOD aparece en el TV</div>
+          <div class="cast-text">No toques el menú de Chrome durante la transmisión — así el móvil se queda en pantalla completa y horizontal</div>
         </div>
       </div>
+      <div class="cast-note">¿No tienes esa opción? Usa el menú ⋮ de Chrome → "Transmitir…", pero ten en cuenta que el navegador puede salir de pantalla completa y mostrar una barra blanca arriba mientras dure la transmisión.</div>
       <button id="btn-cast-close">Entendido</button>
     </div>
   </div>
