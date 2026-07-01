@@ -240,6 +240,25 @@
       line-height: 1.5; text-align: left; margin-bottom: 1.4rem;
       border-top: 1px solid #2a2a2a; padding-top: 0.9rem;
     }
+    .cast-share-box {
+      background: rgba(255,255,255,0.07); border-radius: 10px;
+      padding: 1rem 1rem 0.8rem; margin-bottom: 1.2rem; text-align: center;
+    }
+    .cast-share-label {
+      font-size: 0.7rem; color: #888; font-family: Arial, sans-serif;
+      letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.7rem;
+    }
+    .cast-share-sub {
+      font-size: 0.7rem; color: #666; font-family: Arial, sans-serif;
+      line-height: 1.45; margin-top: 0.6rem;
+    }
+    #btn-share-wod {
+      width: 100%; background: #fff; color: #000;
+      font-size: 0.95rem; padding: 0.65rem 1rem;
+      border-radius: 8px; border: none; cursor: pointer;
+      font-weight: 900; letter-spacing: 0.02em;
+      font-family: 'Arial Black', Arial, sans-serif;
+    }
     #btn-cast-close {
       background: #1a1a1a; color: #666; border: 1px solid #2a2a2a;
       font-size: 0.8rem; padding: 0.55rem 1.4rem;
@@ -285,6 +304,17 @@
   </div>
 
   <script>
+
+    /* ─── Codificación WOD en URL ─── */
+    function encodeWOD(text) {
+      return btoa(unescape(encodeURIComponent(text)));
+    }
+    function decodeWOD(b64) {
+      try { return decodeURIComponent(escape(atob(b64))); } catch(e) { return null; }
+    }
+    function wodURL(raw) {
+      return location.origin + location.pathname + '#wod=' + encodeWOD(raw);
+    }
 
     /* ─── Utilidades ─── */
     function esc(s) {
@@ -472,6 +502,7 @@
       const raw = document.getElementById('wod-input').value;
       if (!raw.trim()) return;
 
+      history.replaceState(null, '', '#wod=' + encodeWOD(raw));
       renderWOD(raw);
       document.getElementById('screen-editor').style.display = 'none';
       document.getElementById('screen-display').style.display = 'flex';
@@ -489,6 +520,7 @@
     }
 
     function goBack() {
+      history.replaceState(null, '', location.pathname);
       document.getElementById('screen-display').style.display = 'none';
       document.getElementById('screen-editor').style.display  = 'flex';
       if (document.fullscreenElement) document.exitFullscreen();
@@ -531,11 +563,16 @@
       const noteEl  = document.getElementById('cast-note');
 
       if (isIOS) {
-        stepsEl.innerHTML =
-          castStep(1, '<strong>Opción A — TV con AirPlay 2</strong> (Samsung, LG, Sony recientes): gira el móvil a horizontal → Centro de Control → <strong>"Duplicar pantalla"</strong> → elige tu TV') +
-          castStep(2, '<strong>Opción B — TV con navegador</strong> (Google TV, Android TV, Samsung, LG): abre el navegador del TV y ve a <strong>jacobcovadlo.github.io/OlimpoBoxTvWood/tv-display.html</strong>') +
-          castStep(3, '<strong>Opción C — Cable HDMI</strong>: conecta el iPhone al TV con un adaptador Lightning/USB-C a HDMI');
-        noteEl.innerHTML = 'El iPhone <strong>no puede enviar contenido a un Chromecast directamente</strong> — Chromecast es tecnología de Google y no es compatible con AirPlay. Usa una de las opciones anteriores.';
+        const shareBox = `
+          <div class="cast-share-box">
+            <div class="cast-share-label">Enviar WOD a la Samsung TV</div>
+            <button id="btn-share-wod" onclick="shareWODLink()">📤 Compartir enlace del WOD</button>
+            <div class="cast-share-sub">Mándatelo por WhatsApp → ábrelo en la Samsung TV desde WhatsApp Web → el WOD aparece solo en la TV, el móvil queda libre</div>
+          </div>`;
+        stepsEl.innerHTML = shareBox +
+          castStep(1, '<strong>AirPlay (alternativa)</strong>: gira el móvil a horizontal → Centro de Control → "Duplicar pantalla" → elige tu Samsung TV. El móvil debe quedarse en la app.') +
+          castStep(2, '<strong>Cable HDMI</strong>: adaptador Lightning o USB-C a HDMI.');
+        noteEl.innerHTML = '';
       } else {
         stepsEl.innerHTML =
           castStep(1, 'Desliza desde arriba para abrir los <strong>ajustes rápidos</strong> del móvil') +
@@ -608,6 +645,35 @@
       }
       setTimeout(scaleWOD, 200);
     });
+
+    function shareWODLink() {
+      const raw = document.getElementById('wod-input').value;
+      if (!raw.trim()) return;
+      const url = wodURL(raw);
+      if (navigator.share) {
+        navigator.share({ url, title: 'WOD del día' }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(url).then(() => {
+          const btn = document.getElementById('btn-share-wod');
+          if (!btn) return;
+          const orig = btn.textContent;
+          btn.textContent = '✓ Enlace copiado';
+          setTimeout(() => { btn.textContent = orig; }, 2500);
+        }).catch(() => {});
+      }
+    }
+
+    /* ─── Auto-display si la página se abre desde un enlace compartido ─── */
+    (function() {
+      const h = location.hash;
+      if (h.startsWith('#wod=')) {
+        const wod = decodeWOD(h.slice(5));
+        if (wod) {
+          document.getElementById('wod-input').value = wod;
+          setTimeout(showDisplay, 80);
+        }
+      }
+    })();
 
     let rsTimer;
     window.addEventListener('resize', () => {
