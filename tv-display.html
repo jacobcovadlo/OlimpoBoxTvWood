@@ -562,19 +562,20 @@
       const stepsEl = document.getElementById('cast-steps');
       const noteEl  = document.getElementById('cast-note');
 
+      const shareBox = `
+        <div class="cast-share-box">
+          <div class="cast-share-label">Enviar WOD a la Samsung TV</div>
+          <button id="btn-share-wod" onclick="shareWODLink()">📤 Compartir enlace del WOD</button>
+          <div class="cast-share-sub">Mándatelo por WhatsApp → ábrelo en la Samsung TV desde WhatsApp Web → el WOD aparece solo en la TV, el móvil queda libre</div>
+        </div>`;
+
       if (isIOS) {
-        const shareBox = `
-          <div class="cast-share-box">
-            <div class="cast-share-label">Enviar WOD a la Samsung TV</div>
-            <button id="btn-share-wod" onclick="shareWODLink()">📤 Compartir enlace del WOD</button>
-            <div class="cast-share-sub">Mándatelo por WhatsApp → ábrelo en la Samsung TV desde WhatsApp Web → el WOD aparece solo en la TV, el móvil queda libre</div>
-          </div>`;
         stepsEl.innerHTML = shareBox +
           castStep(1, '<strong>AirPlay (alternativa)</strong>: gira el móvil a horizontal → Centro de Control → "Duplicar pantalla" → elige tu Samsung TV. El móvil debe quedarse en la app.') +
           castStep(2, '<strong>Cable HDMI</strong>: adaptador Lightning o USB-C a HDMI.');
         noteEl.innerHTML = '';
       } else {
-        stepsEl.innerHTML =
+        stepsEl.innerHTML = shareBox +
           castStep(1, 'Desliza desde arriba para abrir los <strong>ajustes rápidos</strong> del móvil') +
           castStep(2, 'Toca <strong>"Transmitir pantalla" / "Smart View"</strong> (el nombre varía según el móvil)') +
           castStep(3, 'Elige tu <strong>Chromecast / TV</strong> en la lista') +
