@@ -281,6 +281,13 @@
       color: #2a2a2a; font-family: Arial, sans-serif;
       font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
     }
+    #btn-tv-fs {
+      margin-top: 0.6rem; background: #1a1a1a; color: #555;
+      border: 1px solid #2a2a2a; border-radius: 8px;
+      font-size: 0.9rem; padding: 0.6rem 1.4rem; cursor: pointer;
+      font-family: Arial, sans-serif;
+    }
+    #btn-tv-fs:hover { color: #ccc; border-color: #555; }
 
     /* ════ Pantalla enviar WOD (móvil tras escanear) ════ */
     #screen-send {
@@ -365,6 +372,7 @@
     <img id="tv-qr" src="" alt="QR">
     <p id="tv-wait-label">Escanea para enviar el WOD</p>
     <p id="tv-wait-sub">Esperando...</p>
+    <button id="btn-tv-fs" onclick="toggleFullscreen()">⛶ Pantalla completa</button>
   </div>
 
   <!-- Pantalla 4: Enviar WOD desde móvil (tras escanear QR) -->
