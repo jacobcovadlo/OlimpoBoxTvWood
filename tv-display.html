@@ -305,12 +305,36 @@
       margin-top: 0.8rem; color: #666; font-family: Arial, sans-serif;
       font-size: 0.85rem; text-align: center; min-height: 1.2em;
     }
+
+    /* ════ Pantalla de elección ════ */
+    #screen-choice {
+      position: fixed; inset: 0; background: #000;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 1.4rem; z-index: 30;
+    }
+    #choice-logo { width: 160px; margin-bottom: 0.8rem; }
+    .choice-btn {
+      width: 300px; padding: 1.5rem 1rem; border: none;
+      border-radius: 14px; cursor: pointer;
+      font-family: 'Arial Black', Arial, sans-serif;
+      font-size: 1.25rem; font-weight: 900; letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    #btn-choice-tv   { background: #fff; color: #000; }
+    #btn-choice-phone { background: #1a1a1a; color: #fff; border: 2px solid #333; }
   </style>
 </head>
 <body>
 
+  <!-- Pantalla 0: Elección TV / Móvil -->
+  <div id="screen-choice">
+    <img id="choice-logo" src="" alt="Olympo Box">
+    <button class="choice-btn" id="btn-choice-tv">📺&nbsp;&nbsp;Soy la TV</button>
+    <button class="choice-btn" id="btn-choice-phone">📱&nbsp;&nbsp;Soy el móvil</button>
+  </div>
+
   <!-- Pantalla 1: Editor -->
-  <div id="screen-editor">
+  <div id="screen-editor" style="display:none">
     <img id="brand-logo" src="data:image/png;base64,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" alt="Olympo Box">
     <p>Pega el WOD del día. La app redistribuye todo en la pantalla del TV de una vez.</p>
     <textarea id="wod-input" placeholder="Pega aquí el WOD del día..."></textarea>
@@ -378,18 +402,10 @@
       document.getElementById('tv-qr').src =
         'https://api.qrserver.com/v1/create-qr-code/?size=260x260&color=ffffff&bgcolor=000000&data=' +
         encodeURIComponent(sendURL);
+      document.getElementById('screen-choice').style.display = 'none';
       document.getElementById('screen-editor').style.display = 'none';
       document.getElementById('screen-tv-wait').style.display = 'flex';
-      // Cargar el último WOD del historial (últimas 12h)
-      fetch(NTFY_URL + '/json?poll=1&since=12h')
-        .then(r => r.text())
-        .then(text => {
-          const lines = text.trim().split('\n').filter(Boolean);
-          if (lines.length) {
-            try { const m = JSON.parse(lines[lines.length - 1]).message; if (m) showTVWOD(m); } catch(e) {}
-          }
-        }).catch(() => {});
-      // Escuchar nuevos WODs en tiempo real
+      // Solo escuchar mensajes nuevos — no cargar historial para evitar datos antiguos
       const es = new EventSource(NTFY_URL + '/sse');
       es.addEventListener('message', e => {
         try { const m = JSON.parse(e.data).message; if (m) showTVWOD(m); } catch(e) {}
@@ -722,6 +738,14 @@
     }
 
     /* ─── Eventos ─── */
+    document.getElementById('btn-choice-tv').addEventListener('click', () => {
+      history.replaceState(null, '', '#tv');
+      startTVMode();
+    });
+    document.getElementById('btn-choice-phone').addEventListener('click', () => {
+      document.getElementById('screen-choice').style.display = 'none';
+      document.getElementById('screen-editor').style.display = 'flex';
+    });
     document.getElementById('btn-show').addEventListener('click', showDisplay);
     document.getElementById('btn-tv-mode').addEventListener('click', () => {
       history.replaceState(null, '', '#tv');
@@ -784,18 +808,22 @@
 
     /* ─── Arranque según URL hash ─── */
     (function() {
+      document.getElementById('choice-logo').src = document.getElementById('brand-logo').src;
       const h = location.hash;
       if (h === '#tv') {
         startTVMode();
       } else if (h === '#send') {
+        document.getElementById('screen-choice').style.display = 'none';
         startSendMode();
       } else if (h.startsWith('#wod=')) {
+        document.getElementById('screen-choice').style.display = 'none';
         const wod = decodeWOD(h.slice(5));
         if (wod) {
           document.getElementById('wod-input').value = wod;
           setTimeout(showDisplay, 80);
         }
       }
+      // Sin hash → queda la pantalla de elección (visible por defecto)
     })();
 
     let rsTimer;
