@@ -269,11 +269,41 @@
     #screen-tv-wait {
       display: none; position: fixed; inset: 0;
       background: #000; flex-direction: column;
-      align-items: center; justify-content: center; z-index: 5;
+      align-items: center; justify-content: center; z-index: 5; gap: 1.2rem;
     }
-    #tv-wait-text {
-      color: #2a2a2a; font-family: 'Arial Black', Arial, sans-serif;
-      font-size: 1.4rem; letter-spacing: 0.2em;
+    #tv-logo { width: 130px; opacity: 0.6; }
+    #tv-qr { width: 230px; height: 230px; border-radius: 6px; }
+    #tv-wait-label {
+      color: #888; font-family: 'Arial Black', Arial, sans-serif;
+      font-size: 0.95rem; letter-spacing: 0.15em; text-transform: uppercase;
+    }
+    #tv-wait-sub {
+      color: #2a2a2a; font-family: Arial, sans-serif;
+      font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+    }
+
+    /* ════ Pantalla enviar WOD (móvil tras escanear) ════ */
+    #screen-send {
+      display: none; position: fixed; inset: 0;
+      background: #111; flex-direction: column;
+      align-items: center; padding: 2rem 1.5rem; box-sizing: border-box; z-index: 10;
+    }
+    #send-logo { width: 90px; margin-bottom: 1.2rem; }
+    #send-input {
+      width: 100%; flex: 1; background: #1a1a1a; color: #fff;
+      border: 1px solid #333; border-radius: 10px; padding: 1rem;
+      font-size: 1rem; resize: none; margin-bottom: 1rem;
+      font-family: Arial, sans-serif; box-sizing: border-box;
+    }
+    #btn-send-wod {
+      width: 100%; background: #fff; color: #000;
+      font-size: 1.1rem; font-weight: 900; padding: 1rem;
+      border: none; border-radius: 10px; cursor: pointer;
+      font-family: 'Arial Black', Arial, sans-serif; letter-spacing: 0.04em;
+    }
+    #send-status {
+      margin-top: 0.8rem; color: #666; font-family: Arial, sans-serif;
+      font-size: 0.85rem; text-align: center; min-height: 1.2em;
     }
   </style>
 </head>
@@ -304,9 +334,20 @@
     <div id="display-hint">F pantalla completa · C chromecast · Esc volver</div>
   </div>
 
-  <!-- Pantalla 3: TV en espera -->
+  <!-- Pantalla 3: TV en espera (muestra QR) -->
   <div id="screen-tv-wait">
-    <p id="tv-wait-text">ESPERANDO WOD...</p>
+    <img id="tv-logo" src="" alt="Olympo Box">
+    <img id="tv-qr" src="" alt="QR">
+    <p id="tv-wait-label">Escanea para enviar el WOD</p>
+    <p id="tv-wait-sub">Esperando...</p>
+  </div>
+
+  <!-- Pantalla 4: Enviar WOD desde móvil (tras escanear QR) -->
+  <div id="screen-send">
+    <img id="send-logo" src="" alt="Olympo Box">
+    <textarea id="send-input" placeholder="Pega el WOD aquí..."></textarea>
+    <button id="btn-send-wod">📺 Enviar al TV</button>
+    <p id="send-status"></p>
   </div>
 
   <!-- Modal: instrucciones Chromecast -->
@@ -330,6 +371,12 @@
     }
 
     function startTVMode() {
+      const logoSrc = document.getElementById('brand-logo').src;
+      document.getElementById('tv-logo').src = logoSrc;
+      const sendURL = location.origin + location.pathname + '#send';
+      document.getElementById('tv-qr').src =
+        'https://api.qrserver.com/v1/create-qr-code/?size=260x260&color=ffffff&bgcolor=000000&data=' +
+        encodeURIComponent(sendURL);
       document.getElementById('screen-editor').style.display = 'none';
       document.getElementById('screen-tv-wait').style.display = 'flex';
       // Cargar el último WOD del historial (últimas 12h)
@@ -345,6 +392,21 @@
       const es = new EventSource(NTFY_URL + '/sse');
       es.addEventListener('message', e => {
         try { const m = JSON.parse(e.data).message; if (m) showTVWOD(m); } catch(e) {}
+      });
+    }
+
+    function startSendMode() {
+      document.getElementById('send-logo').src = document.getElementById('brand-logo').src;
+      document.getElementById('screen-editor').style.display = 'none';
+      document.getElementById('screen-send').style.display = 'flex';
+      document.getElementById('btn-send-wod').addEventListener('click', () => {
+        const raw = document.getElementById('send-input').value;
+        if (!raw.trim()) return;
+        sendToTV(raw);
+        const btn = document.getElementById('btn-send-wod');
+        btn.textContent = '✓ WOD enviado';
+        btn.style.cssText += 'background:#4caf50;color:#fff;';
+        document.getElementById('send-status').textContent = 'El WOD ya está en la TV.';
       });
     }
 
@@ -720,6 +782,8 @@
       const h = location.hash;
       if (h === '#tv') {
         startTVMode();
+      } else if (h === '#send') {
+        startSendMode();
       } else if (h.startsWith('#wod=')) {
         const wod = decodeWOD(h.slice(5));
         if (wod) {
