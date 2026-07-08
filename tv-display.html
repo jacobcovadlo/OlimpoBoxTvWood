@@ -7,13 +7,16 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>WOD TV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background: #0a0a0a;
       color: #fff;
-      font-family: 'Arial Black', 'Arial Bold', Arial, sans-serif;
+      font-family: 'Big Shoulders Display', 'Arial Black', Arial, sans-serif;
       overflow: hidden;
     }
 
@@ -82,8 +85,91 @@
     #screen-display {
       position: fixed; inset: 0;
       display: none; align-items: center; justify-content: center;
-      background: #000; overflow: hidden;
+      background: #08001a; overflow: hidden;
       z-index: 2;
+    }
+
+    /* ── Fondo morado animado ── */
+    #display-bg {
+      position: absolute; inset: 0; z-index: 0; overflow: hidden;
+      pointer-events: none;
+      background: #04000e;
+    }
+    .dblob {
+      position: absolute; border-radius: 50%;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+      animation-direction: alternate;
+    }
+    /* Fuente principal de luz — violeta brillante, centro-derecha */
+    #dblob1 {
+      width: 110vw; height: 110vh;
+      background: radial-gradient(ellipse at 60% 50%,
+        rgba(160,0,255,1) 0%,
+        rgba(100,0,210,0.75) 25%,
+        rgba(50,0,130,0.35) 55%,
+        transparent 72%);
+      filter: blur(35px);
+      top: -5%; left: -5%;
+      animation: dblob1 28s ease-in-out infinite alternate;
+    }
+    /* Acento magenta — arriba derecha */
+    #dblob2 {
+      width: 70vw; height: 70vh;
+      background: radial-gradient(ellipse at 50% 40%,
+        rgba(220,30,255,0.95) 0%,
+        rgba(160,0,230,0.6) 30%,
+        transparent 62%);
+      filter: blur(28px);
+      top: -18%; right: -12%;
+      animation: dblob2 20s ease-in-out infinite alternate;
+    }
+    /* Profundidad azul-morada — esquina inferior izquierda */
+    #dblob3 {
+      width: 90vw; height: 90vh;
+      background: radial-gradient(ellipse at 35% 60%,
+        rgba(80,0,180,0.85) 0%,
+        rgba(30,0,90,0.5) 45%,
+        transparent 68%);
+      filter: blur(50px);
+      bottom: -25%; left: -20%;
+      animation: dblob3 35s ease-in-out infinite alternate;
+    }
+    /* Destello violeta intenso — zona media */
+    #dblob4 {
+      width: 50vw; height: 55vh;
+      background: radial-gradient(ellipse at 45% 50%,
+        rgba(200,60,255,0.9) 0%,
+        rgba(140,0,240,0.55) 35%,
+        transparent 65%);
+      filter: blur(22px);
+      top: 18%; left: 28%;
+      animation: dblob4 24s ease-in-out infinite alternate;
+    }
+    @keyframes dblob1 { from { transform: translate(0,0) scale(1); } to { transform: translate(18vw,12vh) scale(1.15); } }
+    @keyframes dblob2 { from { transform: translate(0,0) scale(1); } to { transform: translate(-15vw,20vh) scale(1.2); } }
+    @keyframes dblob3 { from { transform: translate(0,0) scale(1); } to { transform: translate(20vw,-10vh) scale(1.1); } }
+    @keyframes dblob4 { from { transform: translate(0,0) scale(1); } to { transform: translate(-10vw,15vh) scale(0.8); } }
+
+    /* ── Logo pantalla display (blanco sobre fondo oscuro) ── */
+    #display-logo {
+      position: fixed; bottom: 6rem; right: 1.8rem;
+      width: clamp(90px, 10vw, 150px);
+      filter: brightness(0) invert(1); opacity: 0.92;
+      z-index: 10; pointer-events: none;
+    }
+
+    /* ── Reloj ── */
+    #wod-clock {
+      position: fixed; bottom: 1.4rem; right: 1.8rem;
+      background: rgba(0,0,0,0.35);
+      border: 2.5px solid rgba(255,255,255,0.9);
+      border-radius: 10px; padding: 0.4rem 1.2rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: clamp(1.6rem, 3vw, 3.5rem);
+      font-weight: 700; color: #fff;
+      letter-spacing: 0.08em; z-index: 10;
+      pointer-events: none;
     }
 
     /* Marco con la proporción real de un TV (16:9), centrado y
@@ -94,8 +180,8 @@
       width:  min(100vw, calc(100vh * 16 / 9));
       height: min(100vh, calc(100vw * 9 / 16));
       display: flex; flex-direction: column;
-      padding: 1.5vh 2vw 0;
-      position: relative; overflow: hidden;
+      padding: 1.5vh 2vw clamp(70px, 9vh, 110px);
+      position: relative; overflow: hidden; z-index: 1;
     }
 
     /* Cabecera fija — tamaños en vw, no escala con el scaler */
@@ -180,14 +266,14 @@
     #btn-back:hover { opacity: 1; color: #ccc; }
 
     #btn-fs-display {
-      position: fixed; bottom: 1.2rem; left: 1.2rem;
-      background: rgba(255,255,255,0.22); color: #fff;
-      font-size: 1.2rem; padding: 0.75rem 1.5rem;
+      position: fixed; top: 1rem; right: 1rem;
+      background: rgba(255,255,255,0.18); color: #fff;
+      font-size: 1.1rem; padding: 0.6rem 1.2rem;
       border-radius: 8px; font-weight: 700;
       font-family: Arial, sans-serif; z-index: 20;
       text-transform: none; letter-spacing: 0;
     }
-    #btn-fs-display:hover { background: rgba(255,255,255,0.35); }
+    #btn-fs-display:hover { background: rgba(255,255,255,0.32); }
 
     @media (max-width: 600px) {
       #btn-back {
@@ -368,6 +454,12 @@
 
   <!-- Pantalla 2: Display -->
   <div id="screen-display">
+    <div id="display-bg">
+      <div class="dblob" id="dblob1"></div>
+      <div class="dblob" id="dblob2"></div>
+      <div class="dblob" id="dblob3"></div>
+      <div class="dblob" id="dblob4"></div>
+    </div>
     <div id="tv-frame">
       <div id="wod-header"></div>
       <div id="wod-content">
@@ -377,6 +469,8 @@
     <button id="btn-back">← Volver</button>
     <button id="btn-fs-display" onclick="toggleFullscreen()">⛶ Pantalla completa</button>
     <div id="display-hint">F pantalla completa · C chromecast · Esc volver</div>
+    <img id="display-logo" src="" alt="Olympo Box">
+    <div id="wod-clock"><span id="clock-display">--:--</span></div>
   </div>
 
   <!-- Pantalla 3: TV en espera (muestra QR) -->
@@ -451,7 +545,9 @@
     function showTVWOD(raw) {
       document.getElementById('screen-tv-wait').style.display = 'none';
       renderWOD(raw);
+      document.getElementById('display-logo').src = document.getElementById('brand-logo').src;
       document.getElementById('screen-display').style.display = 'flex';
+      startClock();
       setTimeout(scaleWOD, 100);
     }
 
@@ -642,6 +738,24 @@
     // (barras negras a los lados) en vez de aprovechar toda la pantalla.
     // En iOS no existe esta API, así que ahí se queda con el preview
     // "letterboxed" en proporción 16:9 (#tv-frame) como mejor alternativa.
+    /* ── Reloj en tiempo real (zona horaria España) ── */
+    let _clockInterval = null;
+    const _clockFmt = new Intl.DateTimeFormat('es-ES', {
+      timeZone: 'Europe/Madrid',
+      hour: '2-digit', minute: '2-digit',
+      hour12: false
+    });
+    function startClock() {
+      const el = document.getElementById('clock-display');
+      function tick() { el.textContent = _clockFmt.format(new Date()); }
+      tick();
+      _clockInterval = setInterval(tick, 1000);
+    }
+    function stopClock() {
+      clearInterval(_clockInterval); _clockInterval = null;
+      document.getElementById('clock-display').textContent = '--:--';
+    }
+
     function tryLockLandscape() {
       if (screen.orientation && screen.orientation.lock) {
         screen.orientation.lock('landscape').catch(() => {});
@@ -655,8 +769,10 @@
       sendToTV(raw);
       history.replaceState(null, '', '#wod=' + encodeWOD(raw));
       renderWOD(raw);
+      document.getElementById('display-logo').src = document.getElementById('brand-logo').src;
       document.getElementById('screen-editor').style.display = 'none';
       document.getElementById('screen-display').style.display = 'flex';
+      startClock();
 
       // Escalar después de que el layout esté listo
       setTimeout(scaleWOD, 100);
@@ -671,6 +787,7 @@
     }
 
     function goBack() {
+      stopClock();
       history.replaceState(null, '', location.pathname);
       document.getElementById('screen-display').style.display = 'none';
       document.getElementById('screen-editor').style.display  = 'flex';
