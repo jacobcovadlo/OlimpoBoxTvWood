@@ -201,7 +201,7 @@
       white-space: normal;
     }
     strong { color: #fff; font-weight: 900; }
-    #wod-grid strong { font-size: 1.2em; font-weight: 900; }
+    #wod-grid strong { font-size: 1.1em; font-weight: 900; }
 
     /* Botón volver */
     #btn-back {
@@ -647,6 +647,39 @@
        Dentro de cada tarjeta, las líneas se reparten verticalmente
        (justify-content: space-evenly) para aprovechar el alto de su celda.
     ─── */
+    // Encoge líneas individuales que se pasan del ancho de su tarjeta.
+    // Devuelve true si se encogió alguna.
+    function refineLongLines(cards) {
+      const grid = document.getElementById('wod-grid');
+      const basePx = parseFloat(grid.style.fontSize) || 16;
+      let shrunken = false;
+
+      Array.from(cards).forEach(card => {
+        const cardW = card.clientWidth - 4;
+        card.querySelectorAll('.wod-line, .card-title').forEach(line => {
+          line.style.fontSize = '';           // reset a herencia
+          line.style.whiteSpace = 'nowrap';
+          const naturalW = line.scrollWidth;
+          line.style.whiteSpace = '';
+          if (naturalW <= cardW) return;      // cabe en una línea, ok
+
+          // Binary search para el tamaño que cabe justo en una línea
+          let lo = 6, hi = basePx;
+          while (hi - lo > 0.5) {
+            const mid = (lo + hi) / 2;
+            line.style.fontSize = mid + 'px';
+            line.style.whiteSpace = 'nowrap';
+            const fits = line.scrollWidth <= cardW;
+            line.style.whiteSpace = '';
+            if (fits) lo = mid; else hi = mid;
+          }
+          line.style.fontSize = Math.floor(lo) + 'px';
+          shrunken = true;
+        });
+      });
+      return shrunken;
+    }
+
     function scaleWOD() {
       const content = document.getElementById('wod-content');
       const grid    = document.getElementById('wod-grid');
@@ -663,7 +696,12 @@
 
       grid.style.height = maxH + 'px';
 
+      // Resetear tamaños individuales de pasadas anteriores
+      grid.querySelectorAll('.wod-line, .card-title').forEach(el => el.style.fontSize = '');
+
       const cards = grid.querySelectorAll('.wod-card');
+
+      // Paso 1: binary search global
       let lo = 4, hi = 500;
       while (hi - lo > 1) {
         const mid = (lo + hi) >> 1;
@@ -673,6 +711,22 @@
         if (overflow) hi = mid; else lo = mid;
       }
       grid.style.fontSize = lo + 'px';
+
+      // Paso 2: encoger líneas largas individualmente
+      if (refineLongLines(cards)) {
+        // Con las líneas largas encogidas, el grid tiene más espacio vertical.
+        // Segundo binary search para aprovechar ese espacio.
+        lo = parseFloat(grid.style.fontSize);
+        hi = 500;
+        while (hi - lo > 1) {
+          const mid = (lo + hi) >> 1;
+          grid.style.fontSize = mid + 'px';
+          const overflow = Array.from(cards).some(c =>
+            c.scrollHeight > c.clientHeight + 1 || c.scrollWidth > c.clientWidth + 1);
+          if (overflow) hi = mid; else lo = mid;
+        }
+        grid.style.fontSize = lo + 'px';
+      }
     }
 
     /* ─── Control de pantallas ─── */
