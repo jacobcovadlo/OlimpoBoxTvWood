@@ -128,7 +128,7 @@
       width:  min(100vw, calc(100vh * 16 / 9));
       height: min(100vh, calc(100vw * 9 / 16));
       display: flex; flex-direction: column;
-      padding: 1.5vh 2vw clamp(70px, 9vh, 110px);
+      padding: 1.5vh 2vw clamp(35px, 4vh, 52px);
       position: relative; overflow: hidden; z-index: 1;
     }
 
@@ -162,14 +162,14 @@
     #wod-grid {
       display: grid;
       width: 100%;
-      gap: 0.6em;
+      gap: 4px 8px;
       text-transform: uppercase;
       /* height y alignContent los controla el scaler */
     }
 
     /* Tarjeta de sección */
     .wod-card {
-      padding: 0.25em 0.5em 0.3em;
+      padding: 0.08em 0.5em 0.08em;
       min-width: 0;  /* evita que la columna se expanda con texto nowrap */
       min-height: 0; /* evita que la fila se expanda con el contenido */
       overflow: hidden;
@@ -664,7 +664,7 @@
       grid.style.height = maxH + 'px';
 
       const cards = grid.querySelectorAll('.wod-card');
-      let lo = 4, hi = 400;
+      let lo = 4, hi = 500;
       while (hi - lo > 1) {
         const mid = (lo + hi) >> 1;
         grid.style.fontSize = mid + 'px';
